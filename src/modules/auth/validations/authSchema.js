@@ -1,5 +1,4 @@
 const { z } = require("zod");
-const Usuario = require('../../usuario/models/Usuario.js');
 
 const registroSchema = z.object({
     nombre: z.string().min(3),
