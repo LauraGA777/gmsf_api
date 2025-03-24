@@ -1,25 +1,14 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const sequelize = require('./core/database/connection.js');
-const setupAssociations = require('./modules/associations.js');
+// Importa las funciones de conexión
 const { errorHandler } = require("./core/middlewares/errorHandler");
 
 dotenv.config();
 
 const app = express();
 
-// Conexión a la base de datos
-sequelize.sync({ force: false })
-    .then(() => {
-        console.log('Tablas creadas');
-        setupAssociations();
-    })
-    .catch((error) => {
-        console.error('Error al sincronizar:', error);
-    });
-
-// Middlewares
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -30,13 +19,18 @@ const authRoutes = require("./modules/auth/routes/authRoutes");
 app.get("/", (req, res) => {
     res.send("API funcionando en Vercel 🚀");
 });
-
 app.use('/api/usuarios', usuarioRoutes);
 app.use("/api/auth", authRoutes);
 
 // Manejo de errores
 app.use(errorHandler);
 
-// No iniciamos el servidor con app.listen()
-// Solo exportamos la app para que la función serverless la use
+// Para desarrollo local
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
 module.exports = app;

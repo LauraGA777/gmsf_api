@@ -23,28 +23,4 @@ const sequelize = new Sequelize(
     }
 );
 
-// Export a function to sync models instead of running it immediately
-const syncModels = async () => {
-    try {
-        await sequelize.sync({ force: false });
-        console.log("Models synchronized");
-        return true;
-    } catch (error) {
-        console.error("Error synchronizing models:", error);
-        return false;
-    }
-};
-
-// Add a test connection function
-const testConnection = async () => {
-    try {
-        await sequelize.authenticate();
-        console.log('Database connection established successfully');
-        return true;
-    } catch (error) {
-        console.error('Unable to connect to the database:', error);
-        return false;
-    }
-};
-
-module.exports = { sequelize,  syncModels, testConnection };
+module.exports = sequelize;
