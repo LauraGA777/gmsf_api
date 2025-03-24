@@ -25,6 +25,9 @@ app.use(express.json());
 // Importar rutas después de configurar asociaciones
 const usuarioRoutes = require('./modules/usuario/routes/usuarioRoutes.js');
 const authRoutes = require("./modules/auth/routes/authRoutes");
+app.get("/", (req, res) => {
+    res.send("API funcionando en Vercel 🚀");
+});
 
 // Rutas
 app.use('/api/usuarios', usuarioRoutes);
