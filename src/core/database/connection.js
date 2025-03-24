@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Crear instancia de Sequelize
+// Remove the immediate sync and make it a function that can be called when needed
 const sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
@@ -22,13 +22,28 @@ const sequelize = new Sequelize(
     }
 );
 
-(async () => {
+// Export a function to sync models instead of running it immediately
+const syncModels = async () => {
     try {
-        await sequelize.sync({ force: false }); // No usar force: true en producción
-        console.log("Modelos sincronizados");
+        await sequelize.sync({ force: false });
+        console.log("Models synchronized");
+        return true;
     } catch (error) {
-        console.error("Error al sincronizar modelos:", error);
+        console.error("Error synchronizing models:", error);
+        return false;
     }
-})();
+};
 
-module.exports = sequelize;
+// Add a test connection function
+const testConnection = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Database connection established successfully');
+        return true;
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+        return false;
+    }
+};
+
+module.exports = { sequelize, syncModels, testConnection };

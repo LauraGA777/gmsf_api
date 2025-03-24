@@ -1,17 +1,18 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const app = express();
 const cors = require('cors');
 const sequelize = require('./core/database/connection.js');
 const setupAssociations = require('./modules/associations.js');
 const { errorHandler } = require("./core/middlewares/errorHandler");
+
 dotenv.config();
 
-// Sincronizar modelos con la base de datos y configurar asociaciones
-sequelize.sync({ force: false }) // ¡Cuidado! `force: true` borra datos existentes
+const app = express();
+
+// Conexión a la base de datos
+sequelize.sync({ force: false })
     .then(() => {
         console.log('Tablas creadas');
-        // Configurar asociaciones después de sincronizar la base de datos
         setupAssociations();
     })
     .catch((error) => {
@@ -22,18 +23,20 @@ sequelize.sync({ force: false }) // ¡Cuidado! `force: true` borra datos existen
 app.use(cors());
 app.use(express.json());
 
-// Importar rutas después de configurar asociaciones
+// Rutas
 const usuarioRoutes = require('./modules/usuario/routes/usuarioRoutes.js');
 const authRoutes = require("./modules/auth/routes/authRoutes");
+
 app.get("/", (req, res) => {
     res.send("API funcionando en Vercel 🚀");
 });
 
-// Rutas
 app.use('/api/usuarios', usuarioRoutes);
 app.use("/api/auth", authRoutes);
 
 // Manejo de errores
 app.use(errorHandler);
 
+// No iniciamos el servidor con app.listen()
+// Solo exportamos la app para que la función serverless la use
 module.exports = app;

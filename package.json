@@ -4,12 +4,14 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "vercel-build": "echo 'Building API'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "laura",
   "license": "ISC",
-  "description": "",
+  "description": "GMSF API for project management",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -23,5 +25,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
