@@ -46,3 +46,4 @@ coverage/
 # Crash dump files
 *.stackdump
 bash.exe.stackdump
+.vercel
