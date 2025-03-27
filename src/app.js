@@ -11,7 +11,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-
+require('./core/database/associations.js');
 // Rutas
 const usuarioRoutes = require('./modules/usuario/routes/usuarioRoutes.js');
 const authRoutes = require("./modules/auth/routes/authRoutes");

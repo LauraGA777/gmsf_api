@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 
 // Función para enviar correo de recuperación
 const enviarCorreoRecuperacion = async (correo, token) => {
-    const enlaceRecuperacion = `http://localhost:3000/api/auth/reset-password?token=${token}`;
+    const enlaceRecuperacion = `http://localhost:5173/api/auth/reset-password?token=${token}`;
 
     const mailOptions = {
         from: process.env.EMAIL_USER, // Correo del remitente
@@ -28,7 +28,6 @@ const enviarCorreoRecuperacion = async (correo, token) => {
             <p>El equipo de GMSF</p>
         `,
     };
-
     // Enviar el correo
     await transporter.sendMail(mailOptions);
 };

@@ -15,7 +15,7 @@ const validarId = (req, res, next) => {
 };
 
 router.post('/', createUsuario);
-router.get("/", verificarToken, esAdmin, getUsuarios); // Solo admin, comentar en pruebas
+router.get('/', verificarToken, esAdmin, getUsuarios); // Solo admin, comentar en pruebas
 router.get('/buscar', verificarToken, esAdmin, searchUsuarios);
 router.get('/:id', validarId, verificarToken, esAdmin, getUsuarioById); // Solo admin, comentar en pruebas
 router.put('/:id', validarId, verificarToken, esAdmin, updateUsuario); // Solo admin, comentar en pruebas
