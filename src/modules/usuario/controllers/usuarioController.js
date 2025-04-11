@@ -1,9 +1,9 @@
 const Usuario = require('../models/Usuario');
-const { usuarioSchema, idSchema, updateUsuarioSchema } = require('../validations/usuarioSchema');
+const { idSchema, updateUsuarioSchema } = require('../validations/usuarioSchema');
 const { Op } = require("sequelize");
 const { searchUsuarioSchema } = require("../validations/usuarioSchema");
+const { generarToken } = require("../../../core/utils/jwt.js");
 const bcrypt = require("bcrypt"); // Añadir importación de bcrypt
-
 
 // Traer todos los usuarios
 const getUsuarios = async (req, res, next) => {
@@ -52,7 +52,7 @@ const createUsuario = async (req, res, next) => {
             apellido,
             correo,
             contrasena,
-            telefono,   
+            telefono,
             direccion,
             tipo_documento,
             numero_documento,
