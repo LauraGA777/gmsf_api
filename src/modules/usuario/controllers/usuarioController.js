@@ -47,28 +47,32 @@ const getUsuarioById = async (req, res, next) => {
 // Crear un nuevo usuario
 const createUsuario = async (req, res, next) => {
     try {
-        // Preparar los datos antes de validar
-        const datosEntrada = { ...req.body };
+        // Get the validated data first
+        const datosValidados = usuarioSchema.parse(req.body);
         
-        // Si viene contraseña, hashearla antes de validar
-        if (datosEntrada.contrasena) {
-            const hashedPassword = await bcrypt.hash(datosEntrada.contrasena, 10);
-            datosEntrada.contrasena_hash = hashedPassword;
-            delete datosEntrada.contrasena;
+        // Create a new object for the database
+        const datosParaGuardar = { ...datosValidados };
+        
+        // Hash the password if it exists
+        if (datosParaGuardar.contrasena_hash) {
+            console.log("Hasheando contraseña...");
+            const hashedPassword = await bcrypt.hash(datosParaGuardar.contrasena_hash, 10);
+            datosParaGuardar.contrasena_hash = hashedPassword;
+            console.log("Contraseña hasheada correctamente");
         }
         
-        // Ahora validamos con los datos ya preparados
-        const datosValidados = usuarioSchema.parse(datosEntrada);
+        console.log("Datos a guardar:", { ...datosParaGuardar, contrasena_hash: "[PROTECTED]" });
         
-        const usuario = await Usuario.create(datosValidados);
+        const usuario = await Usuario.create(datosParaGuardar);
         
-        // Devolver usuario sin el hash de contraseña
+        // Return user without showing the hashed password
         const usuarioSinHash = await Usuario.findByPk(usuario.id, {
             attributes: { exclude: ["contrasena_hash"] },
         });
         
         res.status(201).json(usuarioSinHash);
     } catch (error) {
+        console.error("Error al crear usuario:", error);
         next(error);
     }
 };
