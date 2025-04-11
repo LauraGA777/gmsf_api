@@ -1,18 +1,20 @@
 const { z } = require("zod");
 
 const registroSchema = z.object({
-    nombre: z.string().min(3),
-    apellido: z.string().min(3),           
-    correo: z.string().email(),
-    contrasena: z.string().min(8),
-    telefono: z.string().min(7),
-    direccion: z.string().min(5),
-    tipo_documento: z.enum(["CC", "CE", "TI", "TE", "NIT", "PP", "PEP", "DIE"]), 
-    numero_documento: z.string().min(5),
-    fecha_nacimiento: z.coerce.date() // Acepta strings y los convierte a Date
-        .refine(date => date <= new Date(), {
-            message: "La fecha de nacimiento no puede ser futura"
-        })    
+    nombre: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+    apellido: z.string().min(3, 'El apellido es obligatorio'),
+    correo: z.string().email('Correo electrónico inválido'),
+    contrasena: z
+        .string()
+        .min(8, 'La contraseña debe tener al menos 8 caracteres')
+        .regex(/[A-Z]/, 'La contraseña debe contener al menos una mayúscula')
+        .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    telefono: z.string().min(7, "Teléfono inválido").optional(),
+    direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres").optional(),
+    tipo_documento: z.enum(["TI", "CC", "TE", "CE", "NIT", "PP", "PEP", "DIE"]),
+    numero_documento: z.string().min(5, 'Número de documento inválido'),
+    fecha_nacimiento: z.coerce.date().refine(date => date <= new Date(), "La fecha de nacimiento no puede ser futura"),
+    estado: z.boolean().optional(),    
 });
 const loginSchema = z.object({
     correo: z.string().email("Correo inválido"),
@@ -25,13 +27,11 @@ const resetPasswordSchema = z.object({
     token: z.string(),
     nuevaContrasena: z.string().min(8)
 });
-
 const changePasswordSchema = z.object({
     contrasenaActual: z.string().min(8, "La contraseña actual debe tener al menos 8 caracteres"),
     nuevaContrasena: z.string().min(8, "La nueva contraseña debe tener al menos 8 caracteres"),
     usuarioId: z.number().int().positive(),
 });
-
 const updateProfileSchema = z.object({
     nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres").optional(),
     telefono: z.string().min(7, "El teléfono debe tener al menos 7 caracteres").optional(),
