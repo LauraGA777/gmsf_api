@@ -5,16 +5,16 @@ const usuarioSchema = z.object({
     nombre: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
     apellido: z.string().min(3, 'El apellido es obligatorio'),
     correo: z.string().email('Correo electrónico inválido'),
-    contrasena_hash: z
+    contrasena: z
         .string()
         .min(8, 'La contraseña debe tener al menos 8 caracteres')
         .regex(/[A-Z]/, 'La contraseña debe contener al menos una mayúscula')
         .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    telefono: z.string().min(7, "Teléfono inválido").optional(),
+    direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres").optional(),
     tipo_documento: z.enum(["TI", "CC", "TE", "CE", "NIT", "PP", "PEP", "DIE"]),
     numero_documento: z.string().min(5, 'Número de documento inválido'),
     fecha_nacimiento: z.coerce.date().refine(date => date <= new Date(), "La fecha de nacimiento no puede ser futura"),
-    telefono: z.string().min(7, "Teléfono inválido").optional(),
-    direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres").optional(),
     estado: z.boolean().optional(),
 });
 const idSchema = z.object({
