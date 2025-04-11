@@ -2,6 +2,7 @@ const Usuario = require('../models/Usuario');
 const { usuarioSchema, idSchema, updateUsuarioSchema } = require('../validations/usuarioSchema');
 const { Op } = require("sequelize");
 const { searchUsuarioSchema } = require("../validations/usuarioSchema");
+const bcrypt = require("bcrypt"); // Añadir importación de bcrypt
 
 
 // Traer todos los usuarios
@@ -47,8 +48,22 @@ const getUsuarioById = async (req, res, next) => {
 const createUsuario = async (req, res, next) => {
     try {
         const datosValidados = usuarioSchema.parse(req.body);
+        
+        // Hashear la contraseña si existe en los datos validados
+        if (datosValidados.contrasena) {
+            const hashedPassword = await bcrypt.hash(datosValidados.contrasena, 10);
+            datosValidados.contrasena_hash = hashedPassword;
+            delete datosValidados.contrasena; // Eliminar contraseña en texto plano
+        }
+        
         const usuario = await Usuario.create(datosValidados);
-        res.status(201).json(usuario);
+        
+        // Devolver usuario sin el hash de contraseña
+        const usuarioSinHash = await Usuario.findByPk(usuario.id, {
+            attributes: { exclude: ["contrasena_hash"] },
+        });
+        
+        res.status(201).json(usuarioSinHash);
     } catch (error) {
         next(error);
     }
