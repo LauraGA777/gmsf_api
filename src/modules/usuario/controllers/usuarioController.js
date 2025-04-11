@@ -47,14 +47,18 @@ const getUsuarioById = async (req, res, next) => {
 // Crear un nuevo usuario
 const createUsuario = async (req, res, next) => {
     try {
-        const datosValidados = usuarioSchema.parse(req.body);
+        // Preparar los datos antes de validar
+        const datosEntrada = { ...req.body };
         
-        // Hashear la contraseña si existe en los datos validados
-        if (datosValidados.contrasena) {
-            const hashedPassword = await bcrypt.hash(datosValidados.contrasena, 10);
-            datosValidados.contrasena_hash = hashedPassword;
-            delete datosValidados.contrasena; // Eliminar contraseña en texto plano
+        // Si viene contraseña, hashearla antes de validar
+        if (datosEntrada.contrasena) {
+            const hashedPassword = await bcrypt.hash(datosEntrada.contrasena, 10);
+            datosEntrada.contrasena_hash = hashedPassword;
+            delete datosEntrada.contrasena;
         }
+        
+        // Ahora validamos con los datos ya preparados
+        const datosValidados = usuarioSchema.parse(datosEntrada);
         
         const usuario = await Usuario.create(datosValidados);
         
