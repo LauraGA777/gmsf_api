@@ -47,33 +47,41 @@ const getUsuarioById = async (req, res, next) => {
 // Crear un nuevo usuario
 const createUsuario = async (req, res, next) => {
     try {
-        // Get the validated data first
-        const datosValidados = usuarioSchema.parse(req.body);
-        
-        // Create a new object for the database
-        const datosParaGuardar = { ...datosValidados };
-        
-        // Hash the password if it exists
-        if (datosParaGuardar.contrasena_hash) {
-            console.log("Hasheando contraseña...");
-            const hashedPassword = await bcrypt.hash(datosParaGuardar.contrasena_hash, 10);
-            datosParaGuardar.contrasena_hash = hashedPassword;
-            console.log("Contraseña hasheada correctamente");
+        const {
+            nombre,
+            apellido,
+            correo,
+            contrasena,
+            telefono,   
+            direccion,
+            tipo_documento,
+            numero_documento,
+            fecha_nacimiento
+        } = datos;
+        const usuarioExistente = await Usuario.findOne({ where: { correo } });
+        if (usuarioExistente) {
+            throw { status: 400, message: "El correo ya está registrado" };
         }
-        
-        console.log("Datos a guardar:", { ...datosParaGuardar, contrasena_hash: "[PROTECTED]" });
-        
-        const usuario = await Usuario.create(datosParaGuardar);
-        
-        // Return user without showing the hashed password
-        const usuarioSinHash = await Usuario.findByPk(usuario.id, {
-            attributes: { exclude: ["contrasena_hash"] },
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
+        const usuario = await Usuario.create({
+            nombre,
+            apellido,
+            correo,
+            contrasena_hash: hashedPassword,
+            telefono,
+            direccion,
+            tipo_documento,
+            numero_documento,
+            fecha_nacimiento
         });
-        
-        res.status(201).json(usuarioSinHash);
+        const token = generarToken(usuario.id);
+        return { usuario, token };
     } catch (error) {
-        console.error("Error al crear usuario:", error);
-        next(error);
+        if (error.name === "SequelizeUniqueConstraintError") {
+            throw { status: 400, message: "El correo ya está registrado" };
+        }
+        console.error("Error detallado:", error);
+        throw { status: 500, message: "Error interno al registrar usuario" };
     }
 };
 
