@@ -16,6 +16,7 @@ Usuario.belongsToMany(Rol, {
     through: "usuario_rol",
     foreignKey: "id_usuario",
     otherKey: "id_rol",
+    as: 'roles',
     timestamps: false
 });
 
@@ -23,6 +24,7 @@ Rol.belongsToMany(Usuario, {
     through: "usuario_rol",
     foreignKey: "id_rol",
     otherKey: "id_usuario",
+    as: 'usuarios',
     timestamps: false
 });
 

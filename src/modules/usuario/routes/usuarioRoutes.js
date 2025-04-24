@@ -23,10 +23,10 @@ router.post('/', async (req, res, next) => {
         next(error);
     }
 });
-router.get('/', verificarToken, esAdmin, getUsuarios); // Solo admin, comentar en pruebas
+router.get('/', verificarToken, esAdmin, getUsuarios); 
 router.get('/buscar', verificarToken, esAdmin, searchUsuarios);
-router.get('/:id', validarId, verificarToken, esAdmin, getUsuarioById); // Solo admin, comentar en pruebas
-router.put('/:id', validarId, verificarToken, esAdmin, updateUsuario); // Solo admin, comentar en pruebas
-router.delete('/:id', validarId, verificarToken, esAdmin, deleteUsuario); // Solo admin, comentar en pruebas
+router.get('/:id', validarId, verificarToken, esAdmin, getUsuarioById); 
+router.put('/:id', validarId, verificarToken, esAdmin, updateUsuario); 
+router.delete('/:id', validarId, verificarToken, esAdmin, deleteUsuario); 
 
 module.exports = router;
