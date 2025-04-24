@@ -1,47 +1,44 @@
 const { Usuario, Rol } = require('../../core/database/associations');
+const sequelize = require('../../core/database/connection');
 
 const esAdmin = async (req, res, next) => {
     try {
-        // 1. Obtener usuario autenticado con sus roles
-        const usuario = await Usuario.findByPk(req.usuarioId, {
-            include: [{
-                model: Rol,
-                // Mantener la relación many-to-many para compatibilidad
-                through: { attributes: [] }
-            }],
-        });
+        // Simplificamos la consulta para evitar problemas con la tabla intermedia
+        const usuario = await Usuario.findByPk(req.usuarioId);
         
-        // 2. Verificar si el usuario existe
+        // Verificar si el usuario existe
         if (!usuario) {
             return res.status(403).json({ error: "Usuario no encontrado" });
         }
-        // 3. Imprimir información de depuración
-        console.log('Usuario encontrado:', usuario.nombre, usuario.apellido);
-        console.log('Roles del usuario:', usuario.Rols ? usuario.Rols.map(r => r.nombre).join(', ') : 'ninguno');
-
-        // 4. Verificar si tiene roles asignados
-        if (!usuario.Rols || usuario.Rols.length === 0) {
-            // Verificar si tiene un rol asignado directamente
-            if (usuario.id_rol) {
-                // Buscar el rol directamente
-                const rolDirecto = await Rol.findByPk(usuario.id_rol);
-                if (rolDirecto && rolDirecto.nombre.toLowerCase() === "admin") {
-                    console.log('Usuario es administrador por asignación directa. Continuando...');
-                    next();
-                    return;
-                }
+        
+        // Verificar si tiene un rol asignado directamente
+        if (usuario.id_rol) {
+            // Buscar el rol directamente
+            const rol = await Rol.findByPk(usuario.id_rol);
+            if (rol && rol.nombre.toLowerCase() === "admin") {
+                next();
+                return;
             }
-            return res.status(403).json({ error: "Acceso denegado: usuario sin roles asignados" });
         }
         
-        // 5. Verificar si tiene el rol "admin"
-        const esAdministrador = usuario.Rols.some(rol => rol.nombre.toLowerCase() === "admin");
+        // Si llegamos aquí, intentamos buscar en la tabla usuario_rol usando SQL nativo
+        const roles = await sequelize.query(
+            `SELECT r.nombre FROM roles r 
+            JOIN usuario_rol ur ON r.id = ur.id_rol 
+            WHERE ur.id_usuario = :usuarioId AND ur.fecha_fin IS NULL`,
+            {
+                replacements: { usuarioId: req.usuarioId },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+        
+        // Verificar si tiene el rol "admin"
+        const esAdministrador = roles && roles.some(rol => rol.nombre.toLowerCase() === "admin");
         if (!esAdministrador) {
             return res.status(403).json({ error: "Acceso restringido a administradores" });
         }
         
-        // 6. Si pasa todas las verificaciones, continuar con la siguiente función
-        console.log('Usuario es administrador. Continuando...');
+        // Si pasa todas las verificaciones, continuar
         next();
     } catch (error) {
         console.error('Error en middleware esAdmin:', error);
@@ -49,4 +46,5 @@ const esAdmin = async (req, res, next) => {
     }
 };
 
+// Exportar la función directamente, no como un objeto
 module.exports = esAdmin;
