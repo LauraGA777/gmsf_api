@@ -31,13 +31,36 @@ app.use("/api/auth", authRoutes);
 // Endpoint para probar la conexión
 app.get('/test-db', async (req, res) => {
     try {
+        // Check for Vercel authentication if needed
+        const vercelToken = req.headers['x-vercel-authentication'];
+        const isVercelRequest = process.env.VERCEL === '1';
+        
+        // If we're on Vercel and the token doesn't match, reject
+        if (isVercelRequest && vercelToken !== process.env.VERCEL_AUTH_TOKEN) {
+            return res.status(401).json({ message: 'Vercel authentication required' });
+        }
+        
+        await sequelize.authenticate();
+        res.status(200).json({ 
+            message: 'Conexión exitosa a la base de datos',
+            database: process.env.DB_NAME || process.env.POSTGRES_DATABASE,
+            environment: process.env.VERCEL ? 'Vercel' : 'Local'
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al conectar a la base de datos', error: error.message });
+    }
+});
+
+// Endpoint para probar la conexión (sin autenticación)
+app.get('/test-db-public', async (req, res) => {
+    try {
         await sequelize.authenticate();
         res.status(200).json({ 
             message: 'Conexión exitosa a la base de datos',
             database: process.env.DB_NAME || process.env.POSTGRES_DATABASE
         });
     } catch (error) {
-        res.status(500).json({ message: 'Error al conectar a la base de datos', error: error.message });
+        res.status(500).json({ message: 'Error al conectar a la base de datos' });
     }
 });
 
