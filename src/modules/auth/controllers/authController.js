@@ -5,6 +5,26 @@ const { generarToken, generarRefreshToken } = require("../../../core/utils/jwt.j
 const Usuario = require("../../usuario/models/Usuario.js");
 const enviarCorreoRecuperacion= require("../../../core/utils/mailer.js");
 
+// Función para generar código único de usuario
+const generarCodigoUsuario = async () => {
+    // Buscar el último código de usuario
+    const ultimoUsuario = await Usuario.findOne({
+        order: [['id', 'DESC']]
+    });
+    
+    let numero = 1;
+    if (ultimoUsuario && ultimoUsuario.codigo) {
+        // Extraer el número del código (U001 -> 1)
+        const match = ultimoUsuario.codigo.match(/U(\d{3})/);
+        if (match) {
+            numero = parseInt(match[1]) + 1;
+        }
+    }
+    
+    // Formatear el número a 3 dígitos (1 -> 001)
+    return `U${numero.toString().padStart(3, '0')}`;
+};
+
 // Registro de usuario ✅
 const registro = async (datos) => {
     try {
@@ -17,14 +37,22 @@ const registro = async (datos) => {
             direccion,
             tipo_documento,
             numero_documento,
-            fecha_nacimiento
+            fecha_nacimiento,
+            genero,
+            id_rol
         } = datos;
+        
         const usuarioExistente = await Usuario.findOne({ where: { correo } });
         if (usuarioExistente) {
             throw { status: 400, message: "El correo ya está registrado" };
         }
+        
+        // Generar código único
+        const codigo = await generarCodigoUsuario();
+        
         const hashedPassword = await bcrypt.hash(contrasena, 10);
         const usuario = await Usuario.create({
+            codigo,
             nombre,
             apellido,
             correo,
@@ -33,13 +61,22 @@ const registro = async (datos) => {
             direccion,
             tipo_documento,
             numero_documento,
-            fecha_nacimiento
+            fecha_nacimiento,
+            genero,
+            id_rol
         });
+        
         const token = generarToken(usuario.id);
-        return { usuario, token };
+        
+        // Excluir contraseña_hash en la respuesta
+        const usuarioCreado = await Usuario.findByPk(usuario.id, {
+            attributes: { exclude: ["contrasena_hash"] },
+        });
+        
+        return { usuario: usuarioCreado, token };
     } catch (error) {
         if (error.name === "SequelizeUniqueConstraintError") {
-            throw { status: 400, message: "El correo ya está registrado" };
+            throw { status: 400, message: "El correo o número de documento ya está registrado" };
         }
         console.error("Error detallado:", error);
         throw { status: 500, message: "Error interno al registrar usuario" };
@@ -180,6 +217,10 @@ const updateProfile = async (usuarioId, datos) => {
         if (!usuario) {
             throw { status: 404, message: "Usuario no encontrado" };
         }
+        
+        // Actualizar fecha_actualizacion
+        datos.fecha_actualizacion = new Date();
+        
         // Actualizar solo los campos proporcionados
         await usuario.update(datos);
         const usuarioActualizado = await Usuario.findByPk(usuarioId, {

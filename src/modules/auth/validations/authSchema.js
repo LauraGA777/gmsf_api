@@ -9,12 +9,20 @@ const registroSchema = z.object({
         .min(8, 'La contraseña debe tener al menos 8 caracteres')
         .regex(/[A-Z]/, 'La contraseña debe contener al menos una mayúscula')
         .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
-    telefono: z.string().min(7, "Teléfono inválido").optional(),
-    direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres").optional(),
-    tipo_documento: z.enum(["TI", "CC", "TE", "CE", "NIT", "PP", "PEP", "DIE"]),
+    telefono: z.string().regex(/^\d{7,15}$/, "Teléfono debe tener entre 7 y 15 dígitos").optional(),
+    direccion: z.string().optional(),
+    tipo_documento: z.enum(["TI", "CC", "CE", "PP", "DIE"]),
     numero_documento: z.string().min(5, 'Número de documento inválido'),
-    fecha_nacimiento: z.coerce.date().refine(date => date <= new Date(), "La fecha de nacimiento no puede ser futura"),
-    estado: z.boolean().optional(),    
+    fecha_nacimiento: z.coerce.date()
+        .refine(date => {
+            const minAge = new Date();
+            minAge.setFullYear(minAge.getFullYear() - 15);
+            return date <= minAge;
+        }, "Debes tener al menos 15 años"),
+    estado: z.boolean().optional(),
+    // Nuevos campos
+    genero: z.enum(["M", "F", "O"]).optional(),
+    id_rol: z.number().int().positive().optional(),
 });
 const loginSchema = z.object({
     correo: z.string().email("Correo inválido"),
@@ -34,8 +42,10 @@ const changePasswordSchema = z.object({
 });
 const updateProfileSchema = z.object({
     nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres").optional(),
-    telefono: z.string().min(7, "El teléfono debe tener al menos 7 caracteres").optional(),
-    direccion: z.string().min(5, "La dirección debe tener al menos 5 caracteres").optional(),
+    apellido: z.string().min(3, "El apellido debe tener al menos 3 caracteres").optional(),
+    telefono: z.string().regex(/^\d{7,15}$/, "Teléfono debe tener entre 7 y 15 dígitos").optional(),
+    direccion: z.string().optional(),
+    genero: z.enum(["M", "F", "O"]).optional(),
 }).refine(data => {
     // Asegura que al menos un campo esté presente
     return Object.keys(data).length > 0;
