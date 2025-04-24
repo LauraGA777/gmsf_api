@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const { Sequelize } = require('sequelize');
 // Importa las funciones de conexión
 const { errorHandler } = require("./core/middlewares/errorHandler");
 
@@ -21,6 +22,31 @@ app.get("/", (req, res) => {
 });
 app.use('/api/usuarios', usuarioRoutes);
 app.use("/api/auth", authRoutes);
+
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: 'postgres'
+});
+
+// Endpoint para probar la conexión
+app.get('/test-db', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.status(200).json({ message: 'Conexión exitosa a la base de datos' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al conectar a la base de datos', error: error.message });
+    }
+});
+
+console.log('Variables de entorno cargadas:');
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_PORT:', process.env.DB_PORT);
+console.log('DB_NAME:', process.env.DB_NAME);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+console.log('DB_SSL:', process.env.DB_SSL);
+
 
 // Manejo de errores
 app.use(errorHandler);

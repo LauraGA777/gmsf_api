@@ -85,7 +85,6 @@ const createUsuario = async (req, res, next) => {
     }
 };
 
-
 // Actualizar todos los campos de un usuario
 const updateUsuario = async (req, res, next) => {
     try {
